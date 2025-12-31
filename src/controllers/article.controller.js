@@ -1,14 +1,14 @@
 import { Article } from "../models/article_model.js";
 import articleService from "../services/article.service.js";
 
-async function scrapeAndRewrite(req, res) {
-  const { url } = req.body;
-  if (!url) {
-    return res.status(400).json({ message: "URL is required" });
+async function referenceArticles(req, res) {
+  const { url, referenceAUrl, referenceBUrl } = req.body;
+  if (!url || !referenceAUrl || !referenceBUrl) {
+    return res.status(400).json({ message: "URL and reference URLs are required" });
   }
 
   try {
-    const articles = await articleService.scrapeAndRewrite(url);
+    const articles = await articleService.referenceArticles(url, referenceAUrl, referenceBUrl);
     res.status(201).json(articles);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -105,7 +105,7 @@ async function searchArticles(req, res) {
 }
 
 export default {
-  scrapeAndRewrite,
+  referenceArticles,
   getAllArticles,
   getArticleById,
   createArticle,

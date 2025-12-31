@@ -3,7 +3,7 @@ import articleController from "../controllers/article.controller.js";
 
 const router = express.Router();
 
-router.post("/articles/scrape", articleController.scrapeAndRewrite);
+router.post("/articles/reference", articleController.referenceArticles);
 
 router.get("/articles", articleController.getAllArticles);
 
