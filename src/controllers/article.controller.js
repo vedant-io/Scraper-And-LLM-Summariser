@@ -14,7 +14,6 @@ async function enhanceArticle(req, res) {
     const newArticle = await articleService.enhanceArticle(id);
 
     res.status(201).json(newArticle);
-    console.log(newArticle);
   } catch (error) {
     console.error(error);
     res.status(500).json({
