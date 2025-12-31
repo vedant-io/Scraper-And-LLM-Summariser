@@ -7,7 +7,6 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ---- token/length guards ----
 const MAX_ORIGINAL_CHARS = 9000;
 const MAX_REF_CHARS = 3500;
 const MAX_OUTPUT_TOKENS = 1400;

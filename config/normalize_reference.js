@@ -80,7 +80,6 @@ export function normalizeReferenceContent(rawText) {
 
   let removed = 0;
 
-  // 1️⃣ Hard filtering (safe deletions)
   const filteredLines = lines.filter((line) => {
     if (isMostlyNoise(line)) {
       removed++;
@@ -95,7 +94,6 @@ export function normalizeReferenceContent(rawText) {
     return true;
   });
 
-  // 2️⃣ Block formation
   const paragraphs = [];
   let buffer = [];
 
@@ -112,7 +110,6 @@ export function normalizeReferenceContent(rawText) {
     paragraphs.push(buffer.join(" "));
   }
 
-  // 3️⃣ Soft scoring (keep concept-rich content)
   const finalParagraphs = paragraphs.filter((p) => scoreParagraph(p) >= 3);
 
   const cleanedText = finalParagraphs.join("\n\n");
