@@ -1,70 +1,89 @@
 import puppeteer from "puppeteer";
-import { listing_scraper } from "../../scraper/listing_scraper.js";
-import { scrapeArticleContent } from "../../scraper/content_scraper.js";
-import { rewriteArticleWithLLM } from "../../llm/rewriteArticles.js";
+import axios from "axios";
+
 import { Article } from "../models/article_model.js";
 import { scrapeReferenceArticle } from "../../scraper/referenceArticleScraper.js";
+import { normalizeReferenceContent } from "../../config/normalize_reference.js";
+import { rewriteArticleWithLLM } from "../../llm/rewriteArticles.js";
 
-async function scrapeAndRewrite(page, url, referenceA, referenceB) {
-  const articles = await listing_scraper(page, url);
-  const processedArticles = [];
-
-  for (const article of articles) {
-    try {
-      const content = await scrapeArticleContent(page, article.url);
-      const originalArticle = content.contentText;
-
-      const rewrittenContent = await rewriteArticleWithLLM({
-        originalArticle,
-        referenceA,
-        referenceB,
-      });
-
-      const newArticle = new Article({
-        ...article,
-        content: rewrittenContent,
-      });
-
-      await newArticle.save();
-      processedArticles.push(newArticle);
-    } catch (error) {
-      console.error(`Error processing article: ${article.url}`, error);
-    }
+async function enhanceArticle(articleId) {
+  // 1️⃣ Fetch original article from DB
+  const original = await Article.findById(articleId);
+  if (!original) {
+    throw new Error("Article not found");
   }
 
-  return processedArticles;
-}
+  // 2️⃣ Google search using title
+  const searchResponse = await axios.get(
+    "http://localhost:5000/api/v1/google-article-search",
+    {
+      params: { title: original.title },
+    }
+  );
 
-async function referenceArticles(url, referenceAUrl, referenceBUrl) {
+  const results = searchResponse.data.results;
+  if (!results || results.length < 2) {
+    throw new Error("Insufficient reference articles from Google");
+  }
+
+  const [refA, refB] = results;
+
+  // 3️⃣ Scrape reference articles
   const browser = await puppeteer.launch({
     headless: true,
     defaultViewport: { width: 1280, height: 800 },
   });
 
+  let refAData, refBData;
+
   try {
-    const referenceA = await scrapeReferenceArticle(browser, referenceAUrl);
-    const referenceB = await scrapeReferenceArticle(browser, referenceBUrl);
-
-    if (!referenceA?.contentText || !referenceB?.contentText) {
-      throw new Error("Could not scrape one or both reference articles.");
-    }
-
-    const page = await browser.newPage();
-    const processedArticles = await scrapeAndRewrite(
-      page,
-      url,
-      referenceA.contentText,
-      referenceB.contentText
-    );
-    return processedArticles;
-  } catch (error) {
-    console.error(`Failed to process articles with references: ${error}`);
-    return [];
+    refAData = await scrapeReferenceArticle(browser, refA.url);
+    refBData = await scrapeReferenceArticle(browser, refB.url);
   } finally {
     await browser.close();
   }
+
+  if (!refAData?.contentText || !refBData?.contentText) {
+    throw new Error("Failed to scrape reference article content");
+  }
+
+  // 4️⃣ Normalize content
+  const normalizedRefA = normalizeReferenceContent(refAData.contentText);
+  const normalizedRefB = normalizeReferenceContent(refBData.contentText);
+
+  if (
+    normalizedRefA.metadata.confidence === "low" ||
+    normalizedRefB.metadata.confidence === "low"
+  ) {
+    throw new Error("Reference content quality too low for rewriting");
+  }
+
+  // 5️⃣ Rewrite using LLM
+  const rewrittenContent = await rewriteArticleWithLLM({
+    originalArticle: original.content,
+    referenceA: normalizedRefA.cleanedText,
+    referenceB: normalizedRefB.cleanedText,
+  });
+
+  // 6️⃣ Append references
+  const finalContent = `${rewrittenContent}
+
+References:
+1. ${refA.title} – ${refA.url}
+2. ${refB.title} – ${refB.url}
+`;
+
+  // 7️⃣ Save enhanced article
+  const enhancedArticle = await Article.create({
+    title: `${original.title} (Enhanced)`,
+    content: finalContent,
+    tags: original.tags,
+    author: "AI-enhanced",
+  });
+
+  return enhancedArticle;
 }
 
 export default {
-  referenceArticles,
+  enhanceArticle,
 };

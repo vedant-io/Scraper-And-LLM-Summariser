@@ -3,7 +3,7 @@ import articleController from "../controllers/article.controller.js";
 
 const router = express.Router();
 
-router.post("/articles/reference", articleController.referenceArticles);
+router.post("/articles/:id/enhance", articleController.enhanceArticle);
 
 router.get("/articles", articleController.getAllArticles);
 

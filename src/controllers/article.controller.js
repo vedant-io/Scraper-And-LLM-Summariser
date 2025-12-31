@@ -1,17 +1,24 @@
 import { Article } from "../models/article_model.js";
 import articleService from "../services/article.service.js";
 
-async function referenceArticles(req, res) {
-  const { url, referenceAUrl, referenceBUrl } = req.body;
-  if (!url || !referenceAUrl || !referenceBUrl) {
-    return res.status(400).json({ message: "URL and reference URLs are required" });
+async function enhanceArticle(req, res) {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({
+      message: "Article ID is required",
+    });
   }
 
   try {
-    const articles = await articleService.referenceArticles(url, referenceAUrl, referenceBUrl);
-    res.status(201).json(articles);
+    const newArticle = await articleService.enhanceArticle(id);
+
+    res.status(201).json(newArticle);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
   }
 }
 
@@ -105,7 +112,7 @@ async function searchArticles(req, res) {
 }
 
 export default {
-  referenceArticles,
+  enhanceArticle,
   getAllArticles,
   getArticleById,
   createArticle,
