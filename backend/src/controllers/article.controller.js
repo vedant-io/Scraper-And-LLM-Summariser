@@ -15,7 +15,6 @@ async function enhanceArticle(req, res) {
 
     res.status(201).json(newArticle);
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       message: error.message,
     });

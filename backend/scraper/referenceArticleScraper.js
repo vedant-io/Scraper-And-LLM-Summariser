@@ -13,7 +13,6 @@ export async function scrapeReferenceArticle(browser, url) {
       timeout: 30000,
     });
 
-    // Remove common junk elements
     await page.evaluate(() => {
       const junkSelectors = [
         "nav",
@@ -31,7 +30,6 @@ export async function scrapeReferenceArticle(browser, url) {
       });
     });
 
-    // Extract main content
     const extracted = await page.evaluate(() => {
       function getTextLength(el) {
         return el.innerText ? el.innerText.length : 0;
@@ -41,7 +39,6 @@ export async function scrapeReferenceArticle(browser, url) {
         document.querySelector("article") || document.querySelector("main");
 
       if (!container) {
-        // fallback: largest text-heavy div
         const divs = Array.from(document.querySelectorAll("div"));
         container = divs.reduce((largest, current) => {
           return getTextLength(current) > getTextLength(largest)
@@ -63,7 +60,6 @@ export async function scrapeReferenceArticle(browser, url) {
       contentText: extracted.contentText,
     };
   } catch (error) {
-    console.error(`Failed to scrape reference article: ${url}`);
     return null;
   } finally {
     await page.close();

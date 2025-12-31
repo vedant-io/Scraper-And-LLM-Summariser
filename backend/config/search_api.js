@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 async function searchGoogle(query) {
   const API = process.env.GOOGLE_SEARCH_API;
-  const apiKey = API; // Use environment variables if possible
+  const apiKey = API;
   const cxId = "049f0ed4c8a8244ab";
   const url = `www.googleapis.com/${apiKey}&cx=${cxId}&q=${encodeURIComponent(
     query
@@ -20,12 +20,5 @@ async function searchGoogle(query) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log(data.items); // Array of search results
-    // You can then process 'data.items' to display results in your UI
-  } catch (error) {
-    console.error("Fetch error:", error);
-  }
+  } catch (error) {}
 }
-
-// Call the function with your search term
-searchGoogle("example query");

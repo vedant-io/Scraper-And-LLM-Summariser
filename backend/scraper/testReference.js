@@ -11,10 +11,8 @@ const urls = [
   const browser = await puppeteer.launch({ headless: true });
 
   for (const url of urls) {
-    console.log(`\nScraping: ${url}`);
     const result = await scrapeReferenceArticle(browser, url);
     const normalized_output = normalizeReferenceContent(result?.contentText);
-    console.log(normalized_output.cleanedText); // preview
   }
 
   await browser.close();

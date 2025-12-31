@@ -24,5 +24,4 @@ app.use("/api/v1", articleRoutes);
 
 app.listen(port, () => {
   connectDB();
-  console.log(`The Server is running on port: ${port}`);
 });

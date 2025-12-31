@@ -3,10 +3,8 @@ export async function listing_scraper(page, url) {
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
   );
 
-  console.log(`Visiting ${url}`);
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
 
-  // Wait for articles to exist
   await page.waitForSelector("article.entry-card");
 
   const articles = await page.$$eval("article.entry-card", (cards) =>
