@@ -155,6 +155,4 @@ The backend exposes the following REST API endpoints under the `/api/v1` prefix:
 -   `POST /articles/:id/enhance`: Triggers the AI enhancement process for a specific article.
 -   `GET /google-article-search?title=<article_title>`: Searches for reference articles using the Google Custom Search API.
 
-## Live Link
 
-[Link to your deployed frontend application will go here]
